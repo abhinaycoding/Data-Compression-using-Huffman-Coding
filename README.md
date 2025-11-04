@@ -50,22 +50,19 @@ Before running the project, ensure you have the following:
 
 ---
 
-## 🔮 Future Scope
+## 🔁 Huffman Encoding Flowchart
 
-- 🌍 Add file upload support for compressing large text files.  
-- 📊 Visualize the Huffman tree dynamically using animations.  
-- 💾 Include options to save compressed and decompressed data.  
-- 🤖 Extend the algorithm to handle image or binary data compression.  
-- 📱 Develop a **mobile-friendly** or **desktop application** version.  
+Below is a simple visual representation of how the Huffman Encoding process works 👇  
 
----
-
-## 🏁 Conclusion
-
-This project showcases how **Huffman Encoding** can be implemented both algorithmically and visually.  
-It bridges the gap between **theory and application**, allowing users to experience the power of **data compression** through an elegant, modern interface.
-
----
-
-✨ *"Data compression is not just about saving space — it's about saving time, resources, and energy."*  
-``
+```mermaid
+flowchart TD
+    A[Start] --> B[Input Text]
+    B --> C[Calculate Frequency of Each Character]
+    C --> D[Create Priority Queue (Min-Heap)]
+    D --> E[Build Huffman Tree by Merging Lowest Frequency Nodes]
+    E --> F[Generate Binary Codes (0/1) from Tree Paths]
+    F --> G[Encode Original Text using Generated Codes]
+    G --> H[Display Encoded Output and Compression Ratio]
+    H --> I[Decode Back using Huffman Tree]
+    I --> J[Display Decoded Text]
+    J --> K[End]
