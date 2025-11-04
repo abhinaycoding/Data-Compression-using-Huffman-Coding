@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Huffman Encoding - Data Compression</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #e0eafc, #cfdef3);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: #333;
+    }
+    .container {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 1000px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      color: #222;
+    }
+    textarea {
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      resize: none;
+      background: #fafafa;
+      transition: 0.3s;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #4CAF50;
+      background: #fff;
+    }
+    .btn-group {
+      text-align: center;
+      margin: 20px 0;
+    }
+    button {
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+      transform: translateY(-2px);
+    }
+    button.decode { background: #2196F3; }
+    button.decode:hover { background: #1976D2; }
+    button.clear { background: #f44336; }
+    button.clear:hover { background: #d32f2f; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background: #4CAF50;
+      color: white;
+    }
+    .status {
+      margin-top: 20px;
+      text-align: center;
+      font-style: italic;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Data Compression using Huffman Encoding</h1>
+    <label>Enter Text:</label>
+    <textarea id="inputText" rows="4"></textarea>
+    <div class="btn-group">
+      <button id="encodeBtn">Encode</button>
+      <button id="decodeBtn" class="decode">Decode</button>
+      <button id="clearBtn" class="clear">Clear</button>
+    </div>
+    <label>Encoded Text:</label>
+    <textarea id="encodedText" rows="3" readonly></textarea>
+    <label>Decoded Text:</label>
+    <textarea id="decodedText" rows="3" readonly></textarea>
+    <h3 style="text-align:center; margin-top:20px;">Frequency and Huffman Codes</h3>
+    <table id="freqTable">
+      <thead>
+        <tr>
+          <th>Character</th>
+          <th>Frequency</th>
+          <th>Huffman Code</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="status" id="statusLabel"></div>
+  </div>
+  <script>
+    class Node {
+      constructor(char, freq, left=null, right=null) {
+        this.char = char;
+        this.freq = freq;
+        this.left = left;
+        this.right = right;
+      }
+    }
+
+    function buildFrequency(text) {
+      const freq = {};
+      for (let ch of text) {
+        freq[ch] = (freq[ch] || 0) + 1;
+      }
+      return freq;
+    }
+
+    function buildHuffmanTree(freqMap) {
+      let nodes = Object.entries(freqMap).map(([ch, f]) => new Node(ch, f));
+      while (nodes.length > 1) {
+        nodes.sort((a,b)=>a.freq-b.freq);
+        let left = nodes.shift();
+        let right = nodes.shift();
+        nodes.push(new Node(null, left.freq + right.freq, left, right));
+      }
+      return nodes[0];
+    }
+
+    function generateCodes(node, prefix='', map={}) {
+      if (!node) return map;
+      if (node.char !== null) map[node.char] = prefix;
+      generateCodes(node.left, prefix + '0', map);
+      generateCodes(node.right, prefix + '1', map);
+      return map;
+    }
+
+    function encodeText(text, codeMap) {
+      return [...text].map(ch=>codeMap[ch]).join('');
+    }
+
+    function decodeText(encoded, root) {
+      let decoded = '';
+      let node = root;
+      for (let bit of encoded) {
+        node = bit === '0' ? node.left : node.right;
+        if (node.char !== null) {
+          decoded += node.char;
+          node = root;
+        }
+      }
+      return decoded;
+    }
+
+    function compressionRatio(original, encoded) {
+      if (!original.length) return 0;
+      let originalBits = original.length * 8;
+      let compressedBits = encoded.length;
+      return (compressedBits / originalBits) * 100;
+    }
+
+    const input = document.getElementById('inputText');
+    const encodedOut = document.getElementById('encodedText');
+    const decodedOut = document.getElementById('decodedText');
+    const tableBody = document.querySelector('#freqTable tbody');
+    const statusLabel = document.getElementById('statusLabel');
+
+    let root = null, codeMap = null;
+
+    document.getElementById('encodeBtn').onclick = () => {
+      const text = input.value.trim();
+      if (!text) { alert('Please enter text to encode!'); return; }
+      const freqMap = buildFrequency(text);
+      root = buildHuffmanTree(freqMap);
+      codeMap = generateCodes(root);
+      const encoded = encodeText(text, codeMap);
+
+      encodedOut.value = encoded;
+      tableBody.innerHTML = '';
+      Object.keys(freqMap).sort().forEach(ch => {
+        const row = `<tr><td>${ch===' ' ? '[space]' : ch}</td><td>${freqMap[ch]}</td><td>${codeMap[ch]}</td></tr>`;
+        tableBody.insertAdjacentHTML('beforeend', row);
+      });
+
+      const ratio = compressionRatio(text, encoded);
+      statusLabel.textContent = `Encoded successfully | Compression Ratio: ${ratio.toFixed(2)}% (${(100 - ratio).toFixed(2)}% saved)`;
+    };
+
+    document.getElementById('decodeBtn').onclick = () => {
+      if (!root) { alert('Please encode text first!'); return; }
+      const encoded = encodedOut.value.trim();
+      if (!encoded) { alert('No encoded text found!'); return; }
+      const decoded = decodeText(encoded, root);
+      decodedOut.value = decoded;
+      statusLabel.textContent = 'Decoded successfully!';
+    };
+
+    document.getElementById('clearBtn').onclick = () => {
+      input.value = encodedOut.value = decodedOut.value = '';
+      tableBody.innerHTML = '';
+      statusLabel.textContent = '';
+      root = null;
+      codeMap = null;
+    };
+  </script>
+</body>
+</html>
