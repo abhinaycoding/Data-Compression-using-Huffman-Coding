@@ -50,6 +50,7 @@ Before running the project, ensure you have the following:
 
 ---
 
+
 ## 🔁 Huffman Encoding Flowchart
 
 Below is a simple visual representation of how the Huffman Encoding process works 👇  
@@ -66,3 +67,4 @@ flowchart TD
     H --> I[Decode Back using Huffman Tree]
     I --> J[Display Decoded Text]
     J --> K[End]
+
